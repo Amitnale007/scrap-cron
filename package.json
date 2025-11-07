@@ -1,0 +1,13 @@
+{
+    "name": "stock-scraper",
+    "version": "1.0.0",
+    "main": "scrape-and-upsert.js",
+    "scripts": {
+        "scrape": "node scrape-and-upsert.js"
+    },
+    "dependencies": {
+        "@supabase/supabase-js": "^2.0.0",
+        "puppeteer": "^20.0.0",
+        "cheerio": "^1.0.0-rc.12"
+    }
+}
