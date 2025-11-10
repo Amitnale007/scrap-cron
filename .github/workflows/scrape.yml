@@ -1,10 +1,9 @@
 name: Run stock-scraper
 
-# Run manually or on a schedule (daily at 02:00 UTC). Adjust or remove schedule as you like.
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 2 * * *' # daily at 02:00 UTC (edit to your preferred schedule)
+    - cron: '0 2 * * *' # daily at 02:00 UTC (edit if you want)
 
 permissions:
   contents: read
@@ -23,11 +22,10 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'            # match your local/node version
+          node-version: '20'
           cache: 'npm'
 
       - name: Install OS deps for Puppeteer
-        # Puppeteer usually works on ubuntu-latest, but installing these packages reduces failures
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -41,17 +39,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: (Optional) create .env from repo secrets
-        # If your code expects a .env file, this step writes one from GitHub Secrets.
-        # Remove this step if you load env via process.env directly in your code.
+      - name: Create .env from repo secrets (optional)
+        # Only include this step if your script expects a .env file.
         run: |
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
-        env:
-          # nothing here — writing secret values directly from secrets interpolation above
 
       - name: Run scraper
-        # Provide the Supabase secrets as environment variables for the process too (safe usage).
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
