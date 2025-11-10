@@ -3,17 +3,11 @@ name: Run stock-scraper
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: '0 2 * * *' # daily at 02:00 UTC (edit if you want)
-
-permissions:
-  contents: read
+    - cron: '0 2 * * *' # run daily at 2am UTC
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    concurrency:
-      group: stock-scraper
-      cancel-in-progress: true
 
     steps:
       - name: Checkout repo
@@ -25,22 +19,14 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install OS deps for Puppeteer
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 \
-            libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 \
-            libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 \
-            libpango-1.0-0 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 \
-            libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 \
-            libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation
-
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+        env:
+          # Ensures Puppeteer actually downloads Chromium
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
 
-      - name: Create .env from repo secrets (optional)
-        # Only include this step if your script expects a .env file.
+      - name: Create .env file (optional)
+        # Only needed if your script reads from .env instead of process.env
         run: |
           echo "SUPABASE_URL=${{ secrets.SUPABASE_URL }}" >> .env
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
@@ -49,13 +35,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'false'
         run: npm run scrape
-
-      - name: Upload logs (optional)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: scrape-logs
-          path: |
-            ./scrape.log
-            ./*.log
