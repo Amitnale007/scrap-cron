@@ -1,5 +1,6 @@
 // scrape-and-upsert.js
 const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config();
 const scrapeReports = require('./scrapeReports').default; // your file
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
